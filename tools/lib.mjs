@@ -50,8 +50,8 @@ export function replay(level, moves) {
   return { won: false, lost: false, at: clean.length, total: clean.length, state: s };
 }
 
-const OBJ_LETTER = { hedgehog: 'h', wall: 'w', crate: 'c', apple: 'a', water: '~', fire: 'f', key: 'k', door: 'd', tree: 't', rock: 'r', mushroom: 'm', ice: 'i', fox: 'x' };
-const TEXT_LETTER = { HEDGEHOG: 'H', WALL: 'W', CRATE: 'C', APPLE: 'A', WATER: 'V', FIRE: 'F', KEY: 'K', DOOR: 'D', TREE: 'T', ROCK: 'R', FOX: 'X', MUSHROOM: 'G', ICE: 'I', TEXT: 'S', IS: '=', AND: '&', YOU: '1', WIN: '2', STOP: '3', PUSH: '4', HURT: '5', SINK: '6', OPEN: '7', SHUT: '8', MOVE: '9', HOT: 'Z', MELT: 'M' };
+const OBJ_LETTER = { hedgehog: 'h', wall: 'w', crate: 'c', apple: 'a', water: '~', fire: 'f', key: 'k', door: 'd', tree: 't', rock: 'r', mushroom: 'm', ice: 'i', leaf: 'l', fox: 'x' };
+const TEXT_LETTER = { HEDGEHOG: 'H', WALL: 'W', CRATE: 'C', APPLE: 'A', WATER: 'V', FIRE: 'F', KEY: 'K', DOOR: 'D', TREE: 'T', ROCK: 'R', FOX: 'X', MUSHROOM: 'G', ICE: 'I', TEXT: 'S', IS: '=', AND: '&', YOU: '1', WIN: '2', STOP: '3', PUSH: '4', HURT: '5', SINK: '6', OPEN: '7', SHUT: '8', MOVE: '9', HOT: 'Z', MELT: 'M', LEAF: 'L', EXPLODE: 'B', FLOCK: 'N', ECHO: 'E', TRAIL: 'P' };
 
 /** ASCII picture of a state (top object per cell, * = several) plus active rules. */
 export function draw(state) {
