@@ -1,0 +1,10 @@
+{
+  "name": "slovo-zakon",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server 8137",
+    "solve": "node tools/solve.mjs",
+    "test": "node --test"
+  }
+}

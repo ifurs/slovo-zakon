@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Слово — закон</title>
+  <meta name="description" content="Головоломка, де правила — це слова, які можна штовхати.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦔</text></svg>">
+</head>
+<body>
+  <header class="top">
+    <div class="title">
+      <span class="logo">🦔</span>
+      <div>
+        <div id="level-num" class="level-num"></div>
+        <h1 id="level-name"></h1>
+      </div>
+    </div>
+    <nav class="actions">
+      <button class="btn" data-act="undo" title="Скасувати хід (Z)">↶ <span class="lbl">Скасувати</span></button>
+      <button class="btn" data-act="restart" title="Почати заново (R)">⟲ <span class="lbl">Заново</span></button>
+      <button class="btn" data-act="menu" title="Рівні (Esc)">☰ <span class="lbl">Рівні</span></button>
+      <button class="btn icon" id="mute" data-act="mute"></button>
+    </nav>
+  </header>
+
+  <main class="layout">
+    <section class="stage">
+      <canvas id="board" aria-label="Ігрове поле"></canvas>
+      <div id="banner" class="banner" hidden></div>
+    </section>
+
+    <aside class="side">
+      <div class="card">
+        <h3>Діючі правила</h3>
+        <ul id="rules" class="rules"></ul>
+      </div>
+      <div class="card">
+        <h3>Підказка</h3>
+        <p id="hint" class="hint"></p>
+      </div>
+      <div class="card keys">
+        <h3>Керування</h3>
+        <p><kbd>←↑↓→</kbd> / <kbd>WASD</kbd> рух</p>
+        <p><kbd>Пробіл</kbd> чекати</p>
+        <p><kbd>Z</kbd> скасувати · <kbd>R</kbd> заново</p>
+        <p><kbd>Esc</kbd> рівні · <kbd>M</kbd> звук</p>
+      </div>
+    </aside>
+  </main>
+
+  <div class="dpad" aria-label="Кнопки руху">
+    <button data-dir="up" aria-label="Вгору">▲</button>
+    <button data-dir="left" aria-label="Вліво">◀</button>
+    <button data-dir="wait" aria-label="Чекати">●</button>
+    <button data-dir="right" aria-label="Вправо">▶</button>
+    <button data-dir="down" aria-label="Вниз">▼</button>
+  </div>
+
+  <div id="menu" class="menu" hidden>
+    <div class="menu-inner">
+      <h2>Слово — закон</h2>
+      <p class="lead">Правила гри складено зі слів. Штовхай слова — змінюй правила.</p>
+      <div id="level-grid" class="level-grid"></div>
+      <button id="menu-close" class="btn" data-act="close-menu">Повернутися до гри</button>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
