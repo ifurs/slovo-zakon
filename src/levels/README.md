@@ -25,6 +25,7 @@ Objects (lowercase):
 | `a` | яблуко (apple) | `r` | камінь (rock) |
 | `~` | вода (water) | `m` | гриб (mushroom) |
 | `f` | вогонь (fire) | `i` | лід (ice) |
+| `l` | лист (leaf) | | |
 | `x` `y` `^` `v` | лис (fox) facing right / left / up / down | `.` | empty |
 
 Words (text tiles):
@@ -44,7 +45,9 @@ Words (text tiles):
 | `X` | ЛИС | `9` | РУХ (move) |
 | `G` | ГРИБ | `Z` | ЖАР (hot) |
 | `I` | ЛІД | `M` | ТАНЕ (melt) |
-| `S` | СЛОВО (= every word tile) | | |
+| `S` | СЛОВО (= every word tile) | `L` | ЛИСТ (leaf) |
+| `B` | ВИБУХ (explode) | `N` | ЗГРАЯ (flock) |
+| `E` | ЕХО (echo) | `P` | СЛІД (trail) |
 
 ## Exact rules of the engine (`src/engine.js`)
 
@@ -67,7 +70,29 @@ Words (text tiles):
      a ВІДМИЧКА and a ЗАМОК in the same cell destroy each other.
   5. Win: a ТИ object shares a cell with a ПЕРЕМОГА object (or is both).
      Lose: no ТИ object exists (player must undo).
-- Space (`.`) waits a turn: only РУХ objects move.
+- Space (`.`) waits a turn: only РУХ objects move (and ЕХО objects replay your previous move).
+
+### Our own mechanics (not found in other games of the genre — the heart of chapters 6–7)
+
+- **ВИБУХ** — when an object that is ВИБУХ shares a cell with anything else (it was pushed onto
+  something, something walked onto it, a fox ran into it…), **everything in the 3×3 square around
+  that cell is destroyed — words included**. Any other ВИБУХ object caught in the blast explodes
+  too (chain reaction). Explosions resolve before ВИР/СМЕРТЬ/ЖАР/ЗАМОК. Standing next to a blast
+  kills you. Great for: blowing up rules you cannot reach, clearing walls, chain fuses, «bombs»
+  that must not touch each other early.
+- **ЗГРАЯ** — whenever an object of a ЗГРАЯ kind moves (walks as ТИ, gets pushed, РУХ, ЕХО),
+  every other object of the same kind tries to take one step in the same direction (front-most
+  first; blocked members simply stay — this is how you de-sync them). Applies to words too with
+  `СЛОВО ЦЕ ЗГРАЯ`. Great for: moving many crates with one push, a flock of rocks you must herd
+  using walls, flocks pushing words.
+- **ЕХО** — an ЕХО object repeats **the player's previous input**, one turn late: each turn it moves
+  the way you moved last turn (pushing like ТИ would). If your last turn was a wait, it stays.
+  Only real turns count (a turn where nothing at all changed is not a turn). With `ЇЖАК ЦЕ ЕХО`
+  next to `ЇЖАК ЦЕ ТИ`… you get a delayed double move. Great for: a shadow that must step on a
+  plate-like spot a turn after you, timing a follower into a gap, sync puzzles with delay.
+- **СЛІД** — a СЛІД object leaves a **ЛИСТ** (leaf) on every cell it leaves (at most one leaf per cell).
+  Leaves are just decoration until a rule says otherwise: `ЛИСТ ЦЕ СТОП` (you wall yourself in —
+  path-planning, every cell once), `ЛИСТ ЦЕ ВИР`, `ЛИСТ ЦЕ ШТОВХ`, `ЛИСТ ЦЕ ПЕРЕМОГА`, `ЛИСТ ЦЕ ВИБУХ`…
 
 ## Tools
 

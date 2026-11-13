@@ -28,6 +28,7 @@ export const WORDS = {
   ICE: { kind: 'noun', label: 'ЛІД', obj: 'ice', color: '#9fe3ff' },
   // СЛОВО refers to the word tiles themselves.
   TEXT: { kind: 'noun', label: 'СЛОВО', obj: TEXT_OBJ, color: '#e9e6df' },
+  LEAF: { kind: 'noun', label: 'ЛИСТ', obj: 'leaf', color: '#8bc34a' },
 
   IS: { kind: 'op', label: 'ЦЕ', color: '#ffffff' },
   AND: { kind: 'and', label: 'І', color: '#ffffff' },
@@ -43,6 +44,11 @@ export const WORDS = {
   MOVE: { kind: 'prop', label: 'РУХ', prop: 'MOVE', color: '#9be15d' },
   HOT: { kind: 'prop', label: 'ЖАР', prop: 'HOT', color: '#ff7a1a' },
   MELT: { kind: 'prop', label: 'ТАНЕ', prop: 'MELT', color: '#9fe3ff' },
+  // Mechanics of our own:
+  EXPLODE: { kind: 'prop', label: 'ВИБУХ', prop: 'EXPLODE', color: '#ff5d5d' },
+  FLOCK: { kind: 'prop', label: 'ЗГРАЯ', prop: 'FLOCK', color: '#c9a0ff' },
+  ECHO: { kind: 'prop', label: 'ЕХО', prop: 'ECHO', color: '#7fd1c7' },
+  TRAIL: { kind: 'prop', label: 'СЛІД', prop: 'TRAIL', color: '#8bc34a' },
 };
 
 const NOUN_BY_OBJ = Object.fromEntries(
@@ -54,15 +60,16 @@ const NOUN_BY_OBJ = Object.fromEntries(
 // Level map legend.
 export const OBJ_CHARS = {
   h: 'hedgehog', w: 'wall', c: 'crate', a: 'apple', '~': 'water', f: 'fire',
-  k: 'key', d: 'door', t: 'tree', r: 'rock', m: 'mushroom', i: 'ice',
+  k: 'key', d: 'door', t: 'tree', r: 'rock', m: 'mushroom', i: 'ice', l: 'leaf',
   x: 'fox', y: 'fox', '^': 'fox', v: 'fox',
 };
 export const TEXT_CHARS = {
   H: 'HEDGEHOG', W: 'WALL', C: 'CRATE', A: 'APPLE', V: 'WATER', F: 'FIRE',
-  K: 'KEY', D: 'DOOR', T: 'TREE', R: 'ROCK', X: 'FOX', G: 'MUSHROOM', I: 'ICE', S: 'TEXT',
+  K: 'KEY', D: 'DOOR', T: 'TREE', R: 'ROCK', X: 'FOX', G: 'MUSHROOM', I: 'ICE', S: 'TEXT', L: 'LEAF',
   '=': 'IS', '&': 'AND',
   1: 'YOU', 2: 'WIN', 3: 'STOP', 4: 'PUSH', 5: 'HURT', 6: 'SINK', 7: 'OPEN', 8: 'SHUT', 9: 'MOVE',
   Z: 'HOT', M: 'MELT',
+  B: 'EXPLODE', N: 'FLOCK', E: 'ECHO', P: 'TRAIL',
 };
 const START_DIR = { y: 'left', '^': 'up', v: 'down' };
 
@@ -94,7 +101,7 @@ export function loadLevel(level) {
 }
 
 export function cloneState(s) {
-  return { w: s.w, h: s.h, nextId: s.nextId, objs: s.objs.map((o) => ({ ...o })) };
+  return { w: s.w, h: s.h, nextId: s.nextId, last: s.last, objs: s.objs.map((o) => ({ ...o })) };
 }
 
 // ---------- rules ----------
@@ -235,9 +242,42 @@ function doMove(state, rs, o, dx, dy, dir, moved) {
   for (const p of [...objsAt(state, nx, ny)]) {
     if (p !== o && has(rs, p, 'PUSH')) doMove(state, rs, p, dx, dy, dir, moved);
   }
+  const ox = o.x, oy = o.y;
   relocate(state, o, nx, ny);
   o.dir = dir;
   moved.add(o.id);
+  state.moveLog.push({ o, dir });
+  // СЛІД: leave a ЛИСТ on the cell we just left (one per cell).
+  if (has(rs, o, 'TRAIL') && !objsAt(state, ox, oy).some((q) => q.name === 'leaf')) {
+    const leaf = { id: state.nextId++, kind: 'obj', name: 'leaf', x: ox, y: oy, dir: 'right' };
+    state.objs.push(leaf);
+    state.grid.get(oy * state.w + ox)?.push(leaf) ?? state.grid.set(oy * state.w + ox, [leaf]);
+  }
+}
+
+const kindOf = (o) => (o.kind === 'text' ? TEXT_OBJ : o.name);
+
+// ЗГРАЯ: when one member of a kind moves, every other member tries to step the same way.
+function flockPass(state, rs) {
+  const done = new Set();
+  const movedIds = () => new Set(state.moveLog.map((e) => e.o.id));
+  for (let i = 0; i < state.moveLog.length; i++) {
+    const { o, dir } = state.moveLog[i];
+    if (!has(rs, o, 'FLOCK')) continue;
+    const key = kindOf(o) + '|' + dir;
+    if (done.has(key)) continue;
+    done.add(key);
+    const already = movedIds();
+    const [dx, dy] = DIRS[dir];
+    const followers = state.objs
+      .filter((p) => !already.has(p.id) && kindOf(p) === kindOf(o))
+      .sort((a, b) => (b.x - a.x) * dx + (b.y - a.y) * dy);
+    const moved = new Set();
+    for (const p of followers) {
+      if (moved.has(p.id)) continue;
+      if (canMove(state, rs, p, dx, dy)) doMove(state, rs, p, dx, dy, dir, moved);
+    }
+  }
 }
 
 function moveGroup(state, rs, movers, dir) {
@@ -266,7 +306,30 @@ function resolveInteractions(state, rs) {
     cells.get(k).push(o);
   }
   const events = [];
-  for (const list of cells.values()) {
+
+  // ВИБУХ: an exploding object sharing its cell with anything destroys the 3×3 area around it.
+  // Other ВИБУХ objects caught in the blast explode too (chain reaction).
+  const queue = [];
+  const blown = new Set();
+  for (const [k, list] of cells) {
+    if (list.length >= 2 && list.some((o) => has(rs, o, 'EXPLODE'))) { queue.push(k); blown.add(k); }
+  }
+  while (queue.length) {
+    const [cx, cy] = queue.shift().split(',').map(Number);
+    events.push('boom');
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        const k = cx + dx + ',' + (cy + dy);
+        for (const o of cells.get(k) || []) {
+          o.dead = true;
+          if (has(rs, o, 'EXPLODE') && !blown.has(k)) { blown.add(k); queue.push(k); }
+        }
+      }
+    }
+  }
+
+  for (const all of cells.values()) {
+    const list = all.filter((o) => !o.dead);
     if (list.length < 2) continue;
     if (list.some((o) => has(rs, o, 'SINK'))) {
       list.forEach((o) => { o.dead = true; });
@@ -312,6 +375,7 @@ export function step(prev, dir) {
   // Rules depend only on the state, so reuse the ones computed when prev was made.
   let rs = prev.rs || parseRules(state);
   let changed = false;
+  state.moveLog = [];
 
   if (dir !== 'wait') {
     const you = state.objs.filter((o) => has(rs, o, 'YOU'));
@@ -320,7 +384,15 @@ export function step(prev, dir) {
     else if (you.some((o, i) => before[i] !== o.dir)) changed = true;
   }
 
+  // ЕХО: repeats the player's previous move, one turn late.
+  if (prev.last && prev.last !== 'wait') {
+    const echoes = state.objs.filter((o) => has(rs, o, 'ECHO'));
+    if (echoes.length && moveGroup(state, rs, echoes, prev.last)) changed = true;
+  }
+  flockPass(state, rs);
+
   // Objects with РУХ walk forward and turn around when blocked.
+  state.moveLog = [];
   const movers = state.objs.filter((o) => has(rs, o, 'MOVE'));
   for (const o of movers) {
     const moved = new Set();
@@ -331,6 +403,7 @@ export function step(prev, dir) {
     if (canMove(state, rs, o, dx, dy)) doMove(state, rs, o, dx, dy, o.dir, moved);
     changed = true;
   }
+  flockPass(state, rs);
 
   if (state.textMoved) rs = parseRules(state);
   if (applyTransforms(state, rs)) { changed = true; rs = parseRules(state); }
@@ -341,6 +414,9 @@ export function step(prev, dir) {
 
   delete state.grid;
   delete state.textMoved;
+  delete state.moveLog;
+  // Only real turns count as "the previous move" for ЕХО.
+  state.last = changed ? dir : prev.last;
   Object.defineProperty(state, 'rs', { value: rs, enumerable: false });
   const won = checkWin(state, rs);
   const lost = !state.objs.some((o) => has(rs, o, 'YOU'));
@@ -359,10 +435,12 @@ export function describeRules(rs) {
 }
 
 export function stateKey(state, rs) {
-  return state.objs
+  const key = state.objs
     .map((o) => `${o.kind[0]}${o.name}${o.x},${o.y}${has(rs, o, 'MOVE') ? o.dir : ''}`)
     .sort()
     .join('|');
+  // With an ЕХО word on the board, the previous move is part of the state.
+  return state.objs.some((o) => o.name === 'ECHO') ? key + '#' + state.last : key;
 }
 
 export { NOUN_BY_OBJ };

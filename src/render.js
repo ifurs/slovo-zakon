@@ -141,6 +141,12 @@ export class Renderer {
         const bob = you ? Math.sin(time * 5 + o.id) * t * 0.025 : 0;
         drawText(ctx, WORDS[o.name], px, py + bob, t, p.alpha);
       } else {
+        if (props?.has('ECHO')) {
+          ctx.strokeStyle = `rgba(127,209,199,${0.35 + Math.sin(time * 4 + o.id) * 0.2})`;
+          ctx.lineWidth = Math.max(1, t * 0.05);
+          roundRect(ctx, px + t * 0.08, py + t * 0.08, t * 0.84, t * 0.84, t * 0.2);
+          ctx.stroke();
+        }
         if (win) {
           // soft glow behind anything that is ПЕРЕМОГА
           const g = ctx.createRadialGradient(px + t / 2, py + t / 2, 0, px + t / 2, py + t / 2, t * 0.75);
@@ -175,7 +181,7 @@ export class Renderer {
   }
 }
 
-const LAYER = { water: 0, fire: 1, door: 1, wall: 1, tree: 1, ice: 1, rock: 2, crate: 2, apple: 2, key: 2, mushroom: 2, fox: 4, hedgehog: 5 };
+const LAYER = { water: 0, leaf: 0, fire: 1, door: 1, wall: 1, tree: 1, ice: 1, rock: 2, crate: 2, apple: 2, key: 2, mushroom: 2, fox: 4, hedgehog: 5 };
 
 function glow(ctx, px, py, t) {
   const g = ctx.createRadialGradient(px + t / 2, py + t / 2, 0, px + t / 2, py + t / 2, t * 0.75);
@@ -435,6 +441,23 @@ const SPRITES = {
     ctx.fill();
     ctx.fillStyle = 'rgba(255,255,255,0.18)';
     ctx.beginPath(); ctx.ellipse(x + 44 * s, y + 38 * s, 12 * s, 6 * s, -0.4, 0, Math.PI * 2); ctx.fill();
+  },
+
+  leaf(ctx, x, y, t) {
+    const s = t / 100;
+    ctx.save();
+    ctx.translate(x + t / 2, y + t / 2);
+    ctx.rotate(-0.6);
+    ctx.fillStyle = '#6fa83a';
+    ctx.beginPath();
+    ctx.moveTo(-26 * s, 0);
+    ctx.quadraticCurveTo(0, -24 * s, 26 * s, 0);
+    ctx.quadraticCurveTo(0, 24 * s, -26 * s, 0);
+    ctx.fill();
+    ctx.strokeStyle = '#3f6e22';
+    ctx.lineWidth = 2.5 * s;
+    ctx.beginPath(); ctx.moveTo(-30 * s, 0); ctx.lineTo(22 * s, 0); ctx.stroke();
+    ctx.restore();
   },
 
   ice(ctx, x, y, t, time) {

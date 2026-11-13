@@ -31,6 +31,10 @@ export function sfx(name) {
     case 'undo': tone(330, 0.06, 'triangle', 0.04, -120); break;
     case 'rule': tone(523, 0.08, 'triangle', 0.06); tone(784, 0.12, 'triangle', 0.06, 0, 0.07); break;
     case 'poof': tone(160, 0.18, 'sawtooth', 0.05, -110); break;
+    case 'boom':
+      tone(120, 0.35, 'sawtooth', 0.08, -90);
+      tone(60, 0.45, 'square', 0.06, -30, 0.03);
+      break;
     case 'win':
       [523, 659, 784, 1046].forEach((f, i) => tone(f, 0.18, 'triangle', 0.07, 0, i * 0.09));
       break;

@@ -65,7 +65,8 @@ function turn(dir) {
 
   const rulesBefore = ruleSignature(parseRules(prev));
   const rulesAfter = ruleSignature(r.rules);
-  if (r.events.length) { sfx('poof'); renderer.shake = 0.4; }
+  if (r.events.includes('boom')) { sfx('boom'); renderer.shake = 1; }
+  else if (r.events.length) { sfx('poof'); renderer.shake = 0.4; }
   else if (rulesBefore !== rulesAfter) sfx('rule');
   else sfx('step');
 
