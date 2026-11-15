@@ -317,6 +317,15 @@ document.addEventListener('click', (e) => {
   if (!el) return;
   if (el.classList.contains('rep')) { if (e.detail === 0) press(el); return; }
   if (el.dataset.dir) { turn(el.dataset.dir); return; }
+  // The on-screen restart asks for a second tap, so a stray touch doesn't wipe the level.
+  if (el.classList.contains('needs-confirm') && !el.classList.contains('armed')) {
+    el.classList.add('armed');
+    el.querySelector('small').textContent = 'ще раз';
+    clearTimeout(el._disarm);
+    el._disarm = setTimeout(() => disarm(el), 2500);
+    return;
+  }
+  if (el.classList.contains('armed')) disarm(el);
   const act = el.dataset.act;
   if (act === 'install') { installApp(); return; }
   if (act === 'undo') undo();
@@ -326,6 +335,12 @@ document.addEventListener('click', (e) => {
   else if (act === 'mute') toggleMute();
   else if (act === 'close-menu') showMenu(false);
 });
+
+function disarm(el) {
+  clearTimeout(el._disarm);
+  el.classList.remove('armed');
+  el.querySelector('small').textContent = 'заново';
+}
 
 function toggleMute() {
   setMuted(!isMuted());

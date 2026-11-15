@@ -60,13 +60,15 @@
     </aside>
 
     <div class="dpad" aria-label="Кнопки керування">
-      <button class="rep act" data-act="undo" aria-label="Скасувати хід">↶</button>
-      <button class="rep" data-dir="up" aria-label="Вгору">▲</button>
-      <button class="act" data-act="restart" aria-label="Почати заново">⟲</button>
-      <button class="rep" data-dir="left" aria-label="Вліво">◀</button>
-      <button class="rep" data-dir="wait" aria-label="Чекати">●</button>
-      <button class="rep" data-dir="right" aria-label="Вправо">▶</button>
-      <button class="rep" data-dir="down" aria-label="Вниз">▼</button>
+      <button class="pad-side rep" data-act="undo" aria-label="Скасувати хід"><span>↶</span><small>назад</small></button>
+      <div class="cross">
+        <button class="rep" data-dir="up" aria-label="Вгору">▲</button>
+        <button class="rep" data-dir="left" aria-label="Вліво">◀</button>
+        <button class="rep" data-dir="wait" aria-label="Чекати">●</button>
+        <button class="rep" data-dir="right" aria-label="Вправо">▶</button>
+        <button class="rep" data-dir="down" aria-label="Вниз">▼</button>
+      </div>
+      <button class="pad-side needs-confirm" data-act="restart" aria-label="Почати заново"><span>⟲</span><small>заново</small></button>
     </div>
   </main>
 
