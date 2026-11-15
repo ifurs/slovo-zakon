@@ -200,7 +200,11 @@ function showMenu(open) {
   CHAPTERS.forEach((chapter, ci) => {
     const head = document.createElement('h3');
     head.className = 'chapter-head';
-    head.innerHTML = `<span>Розділ ${ci + 1}. ${chapter.name}</span><small>${doneIn(ci)} / ${chapter.levels.length}</small>`;
+    const title = document.createElement('span');
+    title.textContent = `Розділ ${ci + 1}. ${chapter.name}`;
+    const count = document.createElement('small');
+    count.textContent = `${doneIn(ci)} / ${chapter.levels.length}`;
+    head.append(title, count);
     grid.append(head);
     const row = document.createElement('div');
     row.className = 'level-row';
@@ -213,7 +217,13 @@ function showMenu(open) {
       b.disabled = locked;
       if (progress.done.has(lvl.name)) b.classList.add('done');
       if (game && game.index === i) b.classList.add('current');
-      b.innerHTML = `<span class="n">${locked ? '🔒' : lvl.inChapter + 1}</span><span class="t">${lvl.name}</span>`;
+      const num = document.createElement('span');
+      num.className = 'n';
+      num.textContent = locked ? '🔒' : lvl.inChapter + 1;
+      const name = document.createElement('span');
+      name.className = 't';
+      name.textContent = lvl.name;
+      b.append(num, name);
       b.addEventListener('click', () => startLevel(i));
       row.append(b);
     });

@@ -1,3 +1,9 @@
 node_modules/
 *.cpuprofile
 .DS_Store
+.claude/
+.env
+.env.*
+*.bundle
+*.pem
+*.key
