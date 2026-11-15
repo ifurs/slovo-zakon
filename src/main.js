@@ -274,11 +274,41 @@ canvas.addEventListener('pointerup', (e) => {
   turn(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
 });
 
+canvas.addEventListener('pointercancel', () => { touchStart = null; });
+
+// On-screen buttons. Moves and undo fire on press and repeat while held;
+// their click (which follows the press) is ignored unless it came from the keyboard.
+function press(el) {
+  if (el.dataset.dir) turn(el.dataset.dir);
+  else if (el.dataset.act === 'undo') undo();
+}
+let holdTimer = null;
+function stopHold() {
+  clearTimeout(holdTimer);
+  holdTimer = null;
+  document.querySelectorAll('.dpad .held').forEach((b) => b.classList.remove('held'));
+}
+document.querySelectorAll('.dpad .rep').forEach((el) => {
+  el.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    el.setPointerCapture?.(e.pointerId);
+    stopHold();
+    el.classList.add('held');
+    press(el);
+    const repeat = (delay) => { holdTimer = setTimeout(() => { press(el); repeat(140); }, delay); };
+    repeat(380);
+  });
+  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) el.addEventListener(ev, stopHold);
+});
+
 document.addEventListener('click', (e) => {
   const el = e.target.closest('[data-act], [data-dir]');
   if (!el) return;
+  if (el.classList.contains('rep')) { if (e.detail === 0) press(el); return; }
   if (el.dataset.dir) { turn(el.dataset.dir); return; }
   const act = el.dataset.act;
+  if (act === 'install') { installApp(); return; }
   if (act === 'undo') undo();
   else if (act === 'restart') restart();
   else if (act === 'menu') showMenu(true);
@@ -312,6 +342,28 @@ function onResize() {
   renderer.resize(game?.state);
 }
 window.addEventListener('resize', onResize);
+// The board area also changes size when the hint or rule list changes length (phone layout).
+if ('ResizeObserver' in window) new ResizeObserver(onResize).observe(canvas.parentElement);
+
+// ---------- install / offline ----------
+
+let installPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  installPrompt = e;
+  $('#install').hidden = false;
+});
+window.addEventListener('appinstalled', () => { installPrompt = null; $('#install').hidden = true; });
+async function installApp() {
+  if (!installPrompt) return;
+  installPrompt.prompt();
+  await installPrompt.userChoice.catch(() => null);
+  installPrompt = null;
+  $('#install').hidden = true;
+}
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => clearCssCache());
 
 async function boot() {

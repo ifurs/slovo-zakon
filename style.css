@@ -14,6 +14,11 @@
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
 body {
+  height: 100dvh;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
   background: radial-gradient(1200px 600px at 50% -10%, #1d2633 0%, var(--bg) 60%) fixed, var(--bg);
   color: var(--text);
   font-family: "Rubik", "Segoe UI", system-ui, sans-serif;
@@ -28,7 +33,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 16px;
+  padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left));
 }
 .title { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .logo { font-size: 30px; }
@@ -55,15 +60,20 @@ h1 { margin: 0; font-size: 20px; font-weight: 700; white-space: nowrap; overflow
 .btn.primary { background: var(--accent); color: #1a1608; border-color: transparent; font-weight: 700; }
 .btn.primary:hover { background: #ffe27a; }
 
+/* Desktop: board | side panel. Touch screens add the d-pad under the panel;
+   phones in portrait stack board / panel / d-pad; phones in landscape put panel + d-pad on the right. */
 .layout {
   flex: 1;
   min-height: 0;
   display: grid;
   grid-template-columns: 1fr 260px;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: "stage side";
   gap: 16px;
-  padding: 0 16px 16px;
+  padding: 0 max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
 }
-.stage { position: relative; min-height: 0; min-width: 0; }
+.stage { grid-area: stage; position: relative; min-height: 0; min-width: 0; }
+.side { grid-area: side; min-height: 0; }
 #board { display: block; touch-action: none; }
 
 .side { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
@@ -115,10 +125,10 @@ kbd {
 
 .menu {
   position: fixed; inset: 0;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
   background: rgba(10, 12, 17, 0.88);
   backdrop-filter: blur(6px);
   display: grid; place-items: center;
-  padding: 16px;
   z-index: 10;
 }
 .menu[hidden] { display: none; }
@@ -152,35 +162,88 @@ kbd {
 .level-card.current { border-color: var(--accent); }
 .level-card:disabled { opacity: .45; cursor: not-allowed; }
 
-.dpad { display: none; }
+.menu-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 
-@media (max-width: 820px) {
-  .layout { grid-template-columns: 1fr; grid-template-rows: 1fr auto; gap: 8px; padding: 0 16px 8px; }
-  .side { flex-direction: row; overflow-x: auto; overflow-y: hidden; }
-  .side .card { flex: 1 0 220px; }
-  .side .keys { display: none; }
-  .actions .lbl { display: none; }
-  h1 { font-size: 17px; }
+.dpad { grid-area: dpad; display: none; }
+.dpad {
+  grid-template-columns: repeat(3, 64px);
+  grid-template-rows: repeat(3, 52px);
+  gap: 8px;
+  justify-content: center;
+  align-content: end;
+}
+.dpad button {
+  font: inherit; font-size: 20px; color: var(--text);
+  background: var(--panel-2); border: 1px solid var(--border); border-radius: 14px;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+.dpad button:active, .dpad button.held { background: #2b3446; transform: translateY(1px); }
+.dpad .act { background: transparent; color: var(--muted); font-size: 22px; }
+.dpad [data-dir="wait"] { font-size: 13px; }
+
+/* Any touch screen: show the d-pad under the side panel. */
+@media (pointer: coarse) {
+  .layout { grid-template-rows: minmax(0, 1fr) auto; grid-template-areas: "stage side" "stage dpad"; }
+  .dpad { display: grid; }
 }
 
-@media (pointer: coarse), (max-width: 820px) {
-  .dpad {
-    display: grid;
-    grid-template-columns: repeat(3, 56px);
-    grid-template-rows: repeat(3, 48px);
-    gap: 6px;
-    justify-content: center;
-    padding: 4px 16px calc(12px + env(safe-area-inset-bottom));
+/* Phone / narrow window, portrait. */
+@media (max-width: 820px) and (orientation: portrait) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    grid-template-areas: "stage" "side" "dpad";
+    gap: 10px;
   }
-  .dpad button {
-    font-size: 18px; color: var(--text);
-    background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px;
-    touch-action: manipulation;
+  .dpad { display: grid; }
+  .hdr-play { display: none; }
+  .side { flex-direction: column; gap: 8px; max-height: 30dvh; overflow-y: auto; }
+  .side .keys { display: none; }
+  .card { padding: 9px 12px; }
+  .card h3 { margin-bottom: 5px; font-size: 11px; }
+  .hint { font-size: 14px; line-height: 1.35; }
+  .rules { gap: 4px; }
+  .actions .lbl { display: none; }
+  .top { padding-bottom: 8px; }
+  .logo { font-size: 24px; }
+  h1 { font-size: 17px; }
+  .level-num { font-size: 12px; }
+}
+
+/* Phone in landscape: every pixel of height goes to the board. */
+@media (max-height: 540px) and (orientation: landscape) {
+  .top { padding-top: max(6px, env(safe-area-inset-top)); padding-bottom: 6px; }
+  .logo { font-size: 22px; }
+  h1 { font-size: 16px; }
+  .level-num { font-size: 11px; }
+  .btn { padding: 6px 10px; }
+  .actions .lbl, .hdr-play { display: none; }
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 230px;
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas: "stage side" "stage dpad";
+    gap: 8px 12px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
   }
-  .dpad button:active { background: #2b3446; }
-  .dpad [data-dir="up"] { grid-column: 2; grid-row: 1; }
-  .dpad [data-dir="left"] { grid-column: 1; grid-row: 2; }
-  .dpad [data-dir="wait"] { grid-column: 2; grid-row: 2; font-size: 12px; }
-  .dpad [data-dir="right"] { grid-column: 3; grid-row: 2; }
-  .dpad [data-dir="down"] { grid-column: 2; grid-row: 3; }
+  .side { gap: 6px; }
+  .side .keys { display: none; }
+  .card { padding: 7px 10px; }
+  .card h3 { margin-bottom: 4px; font-size: 10px; }
+  .hint { font-size: 13px; line-height: 1.3; }
+  .chip { font-size: 10px; padding: 2px 5px; }
+  .dpad { display: grid; grid-template-columns: repeat(3, 56px); grid-template-rows: repeat(3, 42px); gap: 6px; }
+  .banner { bottom: 8px; padding: 10px 14px; }
+  .banner h2 { font-size: 18px; }
+  .banner p { margin-bottom: 8px; }
+}
+
+@media (max-width: 380px) and (orientation: portrait) {
+  .dpad { grid-template-columns: repeat(3, 58px); grid-template-rows: repeat(3, 46px); gap: 6px; }
+  .actions { gap: 6px; }
+  .btn { padding: 7px 10px; }
+}
+
+@media (pointer: coarse), (max-width: 820px) and (orientation: portrait) {
+  .banner small { display: none; }
 }

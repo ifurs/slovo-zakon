@@ -9,7 +9,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦔</text></svg>">
+  <link rel="icon" href="icons/favicon-64.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0f1218">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Слово — закон">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
   <header class="top">
@@ -21,8 +28,8 @@
       </div>
     </div>
     <nav class="actions">
-      <button class="btn" data-act="undo" title="Скасувати хід (Z)">↶ <span class="lbl">Скасувати</span></button>
-      <button class="btn" data-act="restart" title="Почати заново (R)">⟲ <span class="lbl">Заново</span></button>
+      <button class="btn hdr-play" data-act="undo" title="Скасувати хід (Z)">↶ <span class="lbl">Скасувати</span></button>
+      <button class="btn hdr-play" data-act="restart" title="Почати заново (R)">⟲ <span class="lbl">Заново</span></button>
       <button class="btn" data-act="menu" title="Рівні (Esc)">☰ <span class="lbl">Рівні</span></button>
       <button class="btn icon" id="mute" data-act="mute"></button>
     </nav>
@@ -51,22 +58,27 @@
         <p><kbd>Esc</kbd> рівні · <kbd>M</kbd> звук</p>
       </div>
     </aside>
-  </main>
 
-  <div class="dpad" aria-label="Кнопки руху">
-    <button data-dir="up" aria-label="Вгору">▲</button>
-    <button data-dir="left" aria-label="Вліво">◀</button>
-    <button data-dir="wait" aria-label="Чекати">●</button>
-    <button data-dir="right" aria-label="Вправо">▶</button>
-    <button data-dir="down" aria-label="Вниз">▼</button>
-  </div>
+    <div class="dpad" aria-label="Кнопки керування">
+      <button class="rep act" data-act="undo" aria-label="Скасувати хід">↶</button>
+      <button class="rep" data-dir="up" aria-label="Вгору">▲</button>
+      <button class="act" data-act="restart" aria-label="Почати заново">⟲</button>
+      <button class="rep" data-dir="left" aria-label="Вліво">◀</button>
+      <button class="rep" data-dir="wait" aria-label="Чекати">●</button>
+      <button class="rep" data-dir="right" aria-label="Вправо">▶</button>
+      <button class="rep" data-dir="down" aria-label="Вниз">▼</button>
+    </div>
+  </main>
 
   <div id="menu" class="menu" hidden>
     <div class="menu-inner">
       <h2>Слово — закон</h2>
       <p class="lead">Правила гри складено зі слів. Штовхай слова — змінюй правила.</p>
       <div id="level-grid" class="level-grid"></div>
-      <button id="menu-close" class="btn" data-act="close-menu">Повернутися до гри</button>
+      <div class="menu-actions">
+        <button id="menu-close" class="btn" data-act="close-menu">Повернутися до гри</button>
+        <button id="install" class="btn" data-act="install" hidden>Встановити гру</button>
+      </div>
     </div>
   </div>
 
