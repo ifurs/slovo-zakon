@@ -57,6 +57,7 @@ npm start            # python3 -m http.server 8137
 - `src/levels.js` — збирає розділи докупи
 - `src/render.js` — малювання на canvas
 - `src/main.js` — інтерфейс, керування, прогрес (localStorage)
+- `fonts/` — шрифт Rubik (SIL Open Font License, `fonts/OFL.txt`), гра не робить жодних зовнішніх запитів
 - `sw.js`, `manifest.webmanifest`, `icons/` — офлайн-кеш і встановлення як застосунок (`tools/make-icons.py` малює іконки)
 - `tools/solve.mjs` — пошук найкоротшого розвʼязку, `tools/replay.mjs` — програти ходи й намалювати поле
 - `tests/` — тести рушія і перевірка розвʼязку кожного рівня
@@ -68,3 +69,7 @@ node tools/replay.mjs 2 4 "UURR..."       # програти ходи (без х
 ```
 
 Кожен рівень зберігає свій `solution`; `npm test` перевіряє, що він виграє.
+
+## Ліцензія
+
+Код і рівні — [MIT](LICENSE). Шрифт Rubik — SIL Open Font License 1.1 ([fonts/OFL.txt](fonts/OFL.txt)).

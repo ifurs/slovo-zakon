@@ -7,10 +7,11 @@ const root = new URL('../', import.meta.url);
 const sw = readFileSync(new URL('sw.js', root), 'utf8');
 const core = [...sw.matchAll(/^\s+'([^']+)',$/gm)].map((m) => m[1]);
 
-test('sw.js caches every game module and chapter', () => {
+test('sw.js caches every game module, chapter and font', () => {
   const src = readdirSync(new URL('src/', root)).filter((f) => f.endsWith('.js')).map((f) => `src/${f}`);
   const levels = readdirSync(new URL('src/levels/', root)).filter((f) => f.endsWith('.js')).map((f) => `src/levels/${f}`);
-  for (const f of [...src, ...levels]) assert.ok(core.includes(f), `${f} is missing from CORE in sw.js`);
+  const fonts = readdirSync(new URL('fonts/', root)).filter((f) => f.endsWith('.woff2')).map((f) => `fonts/${f}`);
+  for (const f of [...src, ...levels, ...fonts]) assert.ok(core.includes(f), `${f} is missing from CORE in sw.js`);
 });
 
 test('every file sw.js caches exists', () => {
