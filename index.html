@@ -30,6 +30,7 @@
     <nav class="actions">
       <button class="btn hdr-play" data-act="undo" title="Скасувати хід (Z)">↶ <span class="lbl">Скасувати</span></button>
       <button class="btn hdr-play" data-act="restart" title="Почати заново (R)">⟲ <span class="lbl">Заново</span></button>
+      <button class="btn hdr-rules" data-act="rules" title="Правила і підказка">☷ <span class="lbl">Правила</span></button>
       <button class="btn" data-act="menu" title="Рівні (Esc)">☰ <span class="lbl">Рівні</span></button>
       <button class="btn icon" id="mute" data-act="mute"></button>
     </nav>
@@ -39,9 +40,14 @@
     <section class="stage">
       <canvas id="board" aria-label="Ігрове поле"></canvas>
       <div id="banner" class="banner" hidden></div>
+      <div id="rotate-tip" class="rotate-tip" hidden>↻ Поверни телефон — поле буде більшим</div>
     </section>
 
-    <aside class="side">
+    <aside class="side" id="side" aria-label="Правила і підказка">
+      <div class="sheet-head">
+        <b>Правила і підказка</b>
+        <button class="btn" data-act="close-rules" aria-label="Закрити">✕</button>
+      </div>
       <div class="card">
         <h3>Діючі правила</h3>
         <ul id="rules" class="rules"></ul>
@@ -68,9 +74,11 @@
         <button class="rep" data-dir="right" aria-label="Вправо">▶</button>
         <button class="rep" data-dir="down" aria-label="Вниз">▼</button>
       </div>
-      <button class="pad-side needs-confirm" data-act="restart" aria-label="Почати заново"><span>⟲</span><small>заново</small></button>
+      <button class="pad-side" data-act="rules" aria-label="Правила і підказка"><span>☷</span><small>правила</small></button>
     </div>
   </main>
+
+  <div id="sheet-backdrop" class="sheet-backdrop" data-act="close-rules" hidden></div>
 
   <div id="menu" class="menu" hidden>
     <div class="menu-inner">
@@ -79,6 +87,7 @@
       <div id="level-grid" class="level-grid"></div>
       <div class="menu-actions">
         <button id="menu-close" class="btn" data-act="close-menu">Повернутися до гри</button>
+        <button id="menu-restart" class="btn" data-act="restart-from-menu">⟲ Почати рівень заново</button>
         <button id="install" class="btn" data-act="install" hidden>Встановити гру</button>
       </div>
     </div>

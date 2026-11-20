@@ -50,7 +50,9 @@ function startLevel(index) {
   $('#hint').textContent = level.hint;
   hideBanner();
   showMenu(false);
+  toggleRules(false);
   updateRules();
+  updateRotateTip();
 }
 
 function turn(dir) {
@@ -71,6 +73,7 @@ function turn(dir) {
   else sfx('step');
 
   updateRules();
+  if (game.history.length === 1) updateRotateTip();
   game.lost = r.lost;
   if (r.won) win();
   else if (r.lost) showBanner('lost');
@@ -229,6 +232,7 @@ function showMenu(open) {
     });
   });
   $('#menu-close').hidden = !game;
+  $('#menu-restart').hidden = !game;
   const first = grid.querySelector('.current') || grid.querySelector('button:not(:disabled):not(.done)') || grid.querySelector('button');
   first?.focus({ preventScroll: true });
   first?.scrollIntoView({ block: 'center' });
@@ -246,6 +250,7 @@ const KEYMAP = {
 let lastKeyTime = 0;
 
 window.addEventListener('keydown', (e) => {
+  if (document.body.classList.contains('rules-open') && e.code === 'Escape') { toggleRules(false); e.preventDefault(); return; }
   if (!$('#menu').hidden) {
     if (e.code === 'Escape' && game) { showMenu(false); e.preventDefault(); }
     return;
@@ -317,17 +322,11 @@ document.addEventListener('click', (e) => {
   if (!el) return;
   if (el.classList.contains('rep')) { if (e.detail === 0) press(el); return; }
   if (el.dataset.dir) { turn(el.dataset.dir); return; }
-  // The on-screen restart asks for a second tap, so a stray touch doesn't wipe the level.
-  if (el.classList.contains('needs-confirm') && !el.classList.contains('armed')) {
-    el.classList.add('armed');
-    el.querySelector('small').textContent = 'ще раз';
-    clearTimeout(el._disarm);
-    el._disarm = setTimeout(() => disarm(el), 2500);
-    return;
-  }
-  if (el.classList.contains('armed')) disarm(el);
   const act = el.dataset.act;
   if (act === 'install') { installApp(); return; }
+  if (act === 'rules') { toggleRules(); return; }
+  if (act === 'close-rules') { toggleRules(false); return; }
+  if (act === 'restart-from-menu') { restart(); showMenu(false); return; }
   if (act === 'undo') undo();
   else if (act === 'restart') restart();
   else if (act === 'menu') showMenu(true);
@@ -336,10 +335,16 @@ document.addEventListener('click', (e) => {
   else if (act === 'close-menu') showMenu(false);
 });
 
-function disarm(el) {
-  clearTimeout(el._disarm);
-  el.classList.remove('armed');
-  el.querySelector('small').textContent = 'заново';
+// Phones: rules and hint live in a bottom sheet.
+function toggleRules(open = !document.body.classList.contains('rules-open')) {
+  document.body.classList.toggle('rules-open', open);
+}
+
+// Phones in portrait: a wide board gets tiny tiles; suggest turning the phone.
+function updateRotateTip() {
+  const tip = $('#rotate-tip');
+  const portraitPhone = matchMedia('(max-width: 820px) and (orientation: portrait)').matches;
+  tip.hidden = !(game && portraitPhone && game.history.length === 0 && renderer.tile < 27 && game.state.w > game.state.h);
 }
 
 function toggleMute() {
@@ -365,6 +370,7 @@ function frame(now) {
 
 function onResize() {
   renderer.resize(game?.state);
+  updateRotateTip();
 }
 window.addEventListener('resize', onResize);
 // The board area also changes size when the hint or rule list changes length (phone layout).
@@ -404,3 +410,4 @@ boot();
 
 // Exposed for debugging in the console.
 window.__game = () => game;
+window.__level = (i) => startLevel(i);

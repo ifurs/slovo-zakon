@@ -7,6 +7,11 @@ const LINES = {
   'ВІДМИЧКА': ['ВІД', 'МИЧКА'],
 };
 
+function splitWord(w) {
+  const mid = Math.ceil(w.length / 2);
+  return [w.slice(0, mid), w.slice(mid)];
+}
+
 export class Renderer {
   constructor(canvas) {
     this.canvas = canvas;
@@ -35,7 +40,7 @@ export class Renderer {
   }
 
   layout(state) {
-    const pad = 12;
+    const pad = Math.min(this.cw, this.ch) < 520 ? 3 : 12;
     this.tile = Math.max(12, Math.floor(Math.min((this.cw - pad * 2) / state.w, (this.ch - pad * 2) / state.h)));
     this.ox = Math.floor((this.cw - this.tile * state.w) / 2);
     this.oy = Math.floor((this.ch - this.tile * state.h) / 2);
@@ -227,9 +232,11 @@ function drawText(ctx, word, x, y, t, alpha) {
     ctx.strokeStyle = word.kind === 'noun' ? word.color : 'rgba(255,255,255,0.55)';
     ctx.stroke();
   }
-  const lines = LINES[word.label] || [word.label];
-  const maxW = t * 0.8;
-  let size = t * (lines.length > 1 ? 0.3 : word.label.length <= 2 ? 0.46 : 0.36);
+  // On small tiles a long word in one line becomes unreadable: split it in two.
+  const small = t < 34;
+  const lines = LINES[word.label] || (small && word.label.length >= 5 ? splitWord(word.label) : [word.label]);
+  const maxW = t * (small ? 0.86 : 0.8);
+  let size = t * (lines.length > 1 ? (small ? 0.4 : 0.3) : word.label.length <= 2 ? 0.46 : (small ? 0.42 : 0.36));
   ctx.font = `800 ${size}px ${FONT}`;
   const widest = Math.max(...lines.map((l) => ctx.measureText(l).width));
   if (widest > maxW) { size *= maxW / widest; ctx.font = `800 ${size}px ${FONT}`; }
