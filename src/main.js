@@ -303,7 +303,8 @@ function stopHold() {
   holdTimer = null;
   document.querySelectorAll('.dpad .held').forEach((b) => b.classList.remove('held'));
 }
-document.querySelectorAll('.dpad .rep').forEach((el) => {
+// Undo (and any other single .rep button outside the cross) repeats while held.
+document.querySelectorAll('.dpad .pad-side.rep').forEach((el) => {
   el.addEventListener('pointerdown', (e) => {
     if (e.button !== 0) return;
     e.preventDefault();
@@ -316,6 +317,46 @@ document.querySelectorAll('.dpad .rep').forEach((el) => {
   });
   for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) el.addEventListener(ev, stopHold);
 });
+
+// The cross works as one touch pad: the direction is taken from where the thumb is relative to the
+// centre, so the gaps between buttons count too, and sliding the thumb switches direction like a joystick.
+const cross = document.querySelector('.cross');
+let padDir = null, padPointer = null;
+function padDirAt(e) {
+  const r = cross.getBoundingClientRect();
+  const x = e.clientX - (r.left + r.width / 2), y = e.clientY - (r.top + r.height / 2);
+  if (Math.abs(x) < r.width / 6 && Math.abs(y) < r.height / 6) return 'wait';
+  return Math.abs(x) > Math.abs(y) ? (x > 0 ? 'right' : 'left') : (y > 0 ? 'down' : 'up');
+}
+function padGo(dir) {
+  stopHold();
+  padDir = dir;
+  const btn = cross.querySelector(`[data-dir="${dir}"]`);
+  btn?.classList.add('held');
+  turn(dir);
+  const repeat = (delay) => { holdTimer = setTimeout(() => { turn(dir); repeat(140); }, delay); };
+  repeat(380);
+}
+function padEnd(e) {
+  if (padPointer !== e.pointerId) return;
+  padPointer = null; padDir = null;
+  stopHold();
+}
+cross.addEventListener('pointerdown', (e) => {
+  if (e.button !== 0) return;
+  e.preventDefault();
+  try { cross.setPointerCapture(e.pointerId); } catch { /* not capturable: still works without it */ }
+  padPointer = e.pointerId;
+  padGo(padDirAt(e));
+});
+cross.addEventListener('pointermove', (e) => {
+  if (padPointer !== e.pointerId) return;
+  const d = padDirAt(e);
+  if (d === padDir) return;
+  if (d === 'wait') { stopHold(); padDir = d; return; }   // passing through the centre does not wait
+  padGo(d);
+});
+for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) cross.addEventListener(ev, padEnd);
 
 document.addEventListener('click', (e) => {
   const el = e.target.closest('[data-act], [data-dir]');

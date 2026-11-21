@@ -1,7 +1,7 @@
 // Service worker: the game works offline once it has been opened.
 // Strategy: network first (online you always get the latest version, and the copy is refreshed),
 // the cached copy when offline.
-const CACHE = 'slovo-zakon-v3';
+const CACHE = 'slovo-zakon-v4';
 const CORE = [
   './',
   'index.html',

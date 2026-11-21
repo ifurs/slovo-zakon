@@ -197,6 +197,8 @@ kbd {
   grid-template-columns: repeat(3, 64px);
   grid-template-rows: repeat(3, 52px);
   gap: 8px;
+  touch-action: none;        /* the cross is one touch pad (see main.js); sliding must not scroll */
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
 }
 .cross [data-dir="up"]    { grid-area: 1 / 2; }
 .cross [data-dir="left"]  { grid-area: 2 / 1; }
@@ -269,6 +271,9 @@ kbd {
     padding-right: max(4px, env(safe-area-inset-right));
   }
   .dpad .pad-side { display: flex; }
+  .dpad { gap: 14px; padding-bottom: max(4px, env(safe-area-inset-bottom)); }
+  .cross { grid-template-columns: repeat(3, 72px); grid-template-rows: repeat(3, 60px); gap: 6px; }
+  .dpad button { font-size: 22px; }
   .top { padding-bottom: 6px; }
   .logo { display: none; }
   h1 { font-size: 17px; }
@@ -292,7 +297,7 @@ kbd {
     padding-left: max(6px, env(safe-area-inset-left));
   }
   .dpad .pad-side { display: none; }
-  .cross { grid-template-columns: repeat(3, 54px); grid-template-rows: repeat(3, 48px); gap: 6px; }
+  .cross { grid-template-columns: repeat(3, 58px); grid-template-rows: repeat(3, 52px); gap: 4px; }
   .side { max-height: 85dvh; }
   .banner { bottom: 8px; padding: 10px 14px; }
   .banner h2 { font-size: 18px; }
@@ -300,9 +305,9 @@ kbd {
 }
 
 @media (max-width: 380px) and (orientation: portrait) {
-  .dpad { gap: 12px; }
-  .cross { grid-template-columns: repeat(3, 58px); grid-template-rows: repeat(3, 46px); gap: 6px; }
-  .dpad .pad-side { width: 46px; }
+  .dpad { gap: 10px; }
+  .cross { grid-template-columns: repeat(3, 68px); grid-template-rows: repeat(3, 56px); gap: 5px; }
+  .dpad .pad-side { width: 44px; }
   .actions { gap: 6px; }
   .btn { padding: 7px 10px; }
 }
