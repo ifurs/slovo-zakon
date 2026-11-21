@@ -1,7 +1,7 @@
 // Service worker: the game works offline once it has been opened.
 // Strategy: network first (online you always get the latest version, and the copy is refreshed),
 // the cached copy when offline.
-const CACHE = 'slovo-zakon-v2';
+const CACHE = 'slovo-zakon-v3';
 const CORE = [
   './',
   'index.html',
@@ -27,6 +27,8 @@ const CORE = [
   'src/levels/ch5.js',
   'src/levels/ch6.js',
   'src/levels/ch7.js',
+  'src/levels/ch8.js',
+  'src/levels/ch9.js',
 ];
 
 self.addEventListener('install', (e) => {
