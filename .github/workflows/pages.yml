@@ -1,0 +1,74 @@
+# Deploys the game to GitHub Pages from a workflow: test → build _site/ (only shipped files,
+# service-worker cache named after the commit) → actions/deploy-pages.
+#
+# Off until the repo owner flips one setting: Settings → Pages → Build and deployment → Source = "GitHub Actions".
+# Until then the `pages-source` job sees build_type "legacy", the deploy job is skipped, and Pages keeps
+# serving the branch as before. Nothing else needs to change.
+# Actions are pinned by full commit SHA.
+name: pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - run: node --test
+      - name: Build _site with the cache name from the commit
+        run: node tools/build-site.mjs _site
+        env:
+          CACHE_VERSION: ${{ github.sha }}
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: _site
+
+  pages-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pages: read
+    outputs:
+      build_type: ${{ steps.src.outputs.build_type }}
+    steps:
+      - id: src
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          t=$(gh api "repos/$REPO/pages" --jq .build_type 2>/dev/null) || t=none
+          echo "build_type=$t" >> "$GITHUB_OUTPUT"
+          if [ "$t" != workflow ]; then
+            echo "::notice::Pages source is '$t', not 'GitHub Actions': skipping deploy (the branch is still served)."
+          fi
+
+  deploy:
+    needs: [build, pages-source]
+    if: needs.pages-source.outputs.build_type == 'workflow' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
